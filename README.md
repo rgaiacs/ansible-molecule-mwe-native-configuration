@@ -371,3 +371,23 @@ default ➜ destroy: Executed: Successful
 SCENARIO RECAP                                                                 
 default                   : actions=8  successful=7  disabled=0  skipped=0  missing=0  failed=0
 ```
+
+## Fix
+
+The container image **must** have Python installed as mentioned in the section "[Managed node requirements](https://docs.ansible.com/projects/ansible/latest/installation_guide/intro_installation.html#managed-node-requirements)" of the documentation:
+
+> The managed node (the machine that Ansible is managing) does not require Ansible to be installed, but requires Python to run Ansible-generated Python code.
+
+The machine `docker.io/library/ubuntu:24.04` does **not** have Python:
+
+```
+$ podman run docker.io/library/ubuntu:24.04 python --version
+Error: crun: executable file `python` not found in $PATH: No such file or directory: OCI runtime attempted to invoke a command that was not found
+```
+
+The machine `docker.io/library/python:3.14.7-slim-trixie` has Python:
+
+```
+$ podman run docker.io/library/python:3.14.7-slim-trixie python --version  
+Python 3.14.7
+```
