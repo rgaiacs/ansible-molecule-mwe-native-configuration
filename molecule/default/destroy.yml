@@ -1,24 +1,22 @@
 ---
-- name: Destroy
+- name: Destroy container instances
   hosts: localhost
-  connection: local
   gather_facts: false
-  # no_log: "{{ molecule_no_log }}"
   tasks:
-    # Developer must implement.
+    - name: Get info for all containers
+      containers.podman.podman_container_info:
+        name: "{{ item }}"
+      loop: "{{ groups['molecule'] }}"
+      register: podman_infos
 
-    # Mandatory configuration for Molecule to function.
-
-    - name: Populate instance config
-      ansible.builtin.set_fact:
-        instance_conf: {}
-
-    - name: Dump instance config
-      ansible.builtin.copy:
-        content: |
-          # Molecule managed
-
-          {{ instance_conf | to_json | from_json | to_yaml }}
-        dest: "{{ molecule_instance_config }}"
-        mode: "0600"
-      when: server.changed | default(false) | bool  # noqa no-handler
+    - name: Kill container if running
+      containers.podman.podman_container:
+        name: "{{ item.item }}"
+        state: stopped
+        timeout: 2
+      loop: "{{ podman_infos.results }}"
+      loop_control:
+        label: "{{ item.item }}"
+      when:
+        - item.containers | length > 0
+        - item.containers[0].State.Status == "running"

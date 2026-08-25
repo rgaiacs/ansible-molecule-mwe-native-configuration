@@ -1,10 +1,15 @@
 ---
-# Purpose: bring the instance to the desired state by running the role under test.
-# Molecule calls this playbook with `molecule converge`.
 - name: Converge
-  hosts: all
-  gather_facts: true # Disable if your role does not rely on facts
+  hosts: molecule
+  gather_facts: true
   tasks:
-    - name: Apply role under test
-      ansible.builtin.include_role:
-        name: yournamespace.yourcollection.yourrole
+    - name: Read OS release information
+      ansible.builtin.slurp:
+        src: /etc/os-release
+      register: os_release
+
+    - name: Write OS info to file
+      ansible.builtin.copy:
+        content: "{{ os_release.content | b64decode }}"
+        dest: /tmp/molecule_os_info.txt
+        mode: "0644"
