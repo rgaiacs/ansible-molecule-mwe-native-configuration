@@ -1,0 +1,1 @@
+# ansible-molecule-mwe-native-configuration
